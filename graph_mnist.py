@@ -17,12 +17,12 @@ _train_labels = array(mndata.train_labels).astype(numpy.float32)
 train_labels = keras.utils.to_categorical(_train_labels, 10)
 
 inputs = Input(shape=(28*28,))
-#outputs = Dense(10, input_shape=(28*28,))(inputs)
-outputs = Dense(10, activation='softmax')(inputs)
+hidden = Dense(20, activation='relu')(inputs)
+outputs = Dense(10, activation='softmax')(hidden)
 
 model = Model(inputs=inputs, outputs=outputs)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-model.fit(train_images, train_labels)
+model.fit(train_images, train_labels, epochs=20, batch_size=20)
 
 function = K.function([model.input], [model.layers[-1].output])
 y = function([train_images])[0]
