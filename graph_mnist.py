@@ -24,10 +24,8 @@ model = Model(inputs=inputs, outputs=outputs)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
 model.fit(train_images, train_labels)
 
-function = K.function([model.input]+ [K.learning_phase()], [model.layers[-1].output])
-#function = K.function([model.input], [model.layers[-1].output])
+function = K.function([model.input], [model.layers[-1].output])
 y = function([train_images])[0]
-predicted_labels = list(map(numpy.argmax, y))
-percent_correct = sum(predicted == actual for (predicted, actual) in zip(predicted_labels, _train_labels)) / len(predicted_labels)
+predicted_labels = array(list(map(numpy.argmax, y)))
+percent_correct = (predicted_labels == _train_labels).sum() / _train_labels.size
 print(percent_correct)
-#y = function(x)[0]
