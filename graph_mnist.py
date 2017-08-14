@@ -13,19 +13,21 @@ mndata.load_testing()
 #test_images = array(mndata.test_images).reshape((10000,28*28))
 #test_labels = keras.utils.to_categorical(array(mndata.test_labels), 10)
 train_images = array(mndata.train_images).reshape((60000,28*28)).astype(numpy.float32)
-train_labels = keras.utils.to_categorical(array(mndata.train_labels), 10).astype(numpy.float32)
+_train_labels = array(mndata.train_labels).astype(numpy.float32)
+train_labels = keras.utils.to_categorical(_train_labels, 10)
 
 inputs = Input(shape=(28*28,))
 #outputs = Dense(10, input_shape=(28*28,))(inputs)
-outputs = Dense(10)(inputs)
+outputs = Dense(10, activation='softmax')(inputs)
 
 model = Model(inputs=inputs, outputs=outputs)
-model.compile(optimizer='rmsprop', loss='binary_crossentropy')
+model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
 model.fit(train_images, train_labels)
 
 function = K.function([model.input]+ [K.learning_phase()], [model.layers[-1].output])
-x = train_images[0]
-y = function([x])[0]
-print(y)
-print(y.shape)
-print(numpy.argmax(y))
+#function = K.function([model.input], [model.layers[-1].output])
+y = function([train_images])[0]
+predicted_labels = list(map(numpy.argmax, y))
+percent_correct = sum(predicted == actual for (predicted, actual) in zip(predicted_labels, _train_labels)) / len(predicted_labels)
+print(percent_correct)
+#y = function(x)[0]
