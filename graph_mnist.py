@@ -26,7 +26,7 @@ outputs = Dense(10, activation='softmax', use_bias=True)(x)
 model = Model(inputs=inputs, outputs=outputs)
 #K.set_learning_phase(1)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-model.fit(train_images, train_labels, epochs=6, batch_size=20)
+model.fit(train_images, train_labels, epochs=100, batch_size=20)
 
 function = K.function([model.input]+[K.learning_phase()], [model.layers[-1].output])
 y = function([train_images])[0]
