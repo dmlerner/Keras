@@ -17,7 +17,7 @@ _train_labels = array(mndata.train_labels).astype(numpy.float32)
 train_labels = keras.utils.to_categorical(_train_labels, 10)
 
 inputs = Input(shape=(28*28,))
-x = Dense(20, activation='sigmoid', use_bias=True)(inputs)
+x = Dense(50, activation='sigmoid', use_bias=True)(inputs)
 #y = x
 y = Dropout(.3)(x)
 y = Dense(10, activation='sigmoid')(y)
@@ -26,7 +26,7 @@ outputs = Dense(10, activation='softmax', use_bias=True)(x)
 model = Model(inputs=inputs, outputs=outputs)
 #K.set_learning_phase(1)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-model.fit(train_images, train_labels, epochs=100, batch_size=20)
+model.fit(train_images, train_labels, epochs=99, batch_size=100)
 
 function = K.function([model.input]+[K.learning_phase()], [model.layers[-1].output])
 y = function([train_images])[0]
