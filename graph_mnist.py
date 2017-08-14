@@ -1,6 +1,6 @@
 import keras
 from keras.models import Model
-from keras.layers import Dense, Input
+from keras.layers import Dense, Input, Dropout
 from keras import backend as K
 from mnist import MNIST
 import numpy
@@ -17,14 +17,18 @@ _train_labels = array(mndata.train_labels).astype(numpy.float32)
 train_labels = keras.utils.to_categorical(_train_labels, 10)
 
 inputs = Input(shape=(28*28,))
-hidden = Dense(20, activation='relu')(inputs)
-outputs = Dense(10, activation='softmax')(hidden)
+x = Dense(20, activation='sigmoid')(inputs)
+#y = x
+y = Dropout(.3)(x)
+y = Dense(10, activation='sigmoid')(y)
+outputs = Dense(10, activation='softmax')(x)
 
 model = Model(inputs=inputs, outputs=outputs)
+#K.set_learning_phase(1)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-model.fit(train_images, train_labels, epochs=20, batch_size=20)
+model.fit(train_images, train_labels, epochs=6, batch_size=20)
 
-function = K.function([model.input], [model.layers[-1].output])
+function = K.function([model.input]+[K.learning_phase()], [model.layers[-1].output])
 y = function([train_images])[0]
 predicted_labels = array(list(map(numpy.argmax, y)))
 percent_correct = (predicted_labels == _train_labels).sum() / _train_labels.size
