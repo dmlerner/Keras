@@ -12,16 +12,16 @@ mndata.load_training()
 mndata.load_testing()
 #test_images = array(mndata.test_images).reshape((10000,28*28))
 #test_labels = keras.utils.to_categorical(array(mndata.test_labels), 10)
-train_images = array(mndata.train_images).reshape((60000,28*28)).astype(numpy.float32)
+train_images = array(mndata.train_images).reshape((60000,28*28)).astype(numpy.float32) / 255 - .5
 _train_labels = array(mndata.train_labels).astype(numpy.float32)
 train_labels = keras.utils.to_categorical(_train_labels, 10)
 
 inputs = Input(shape=(28*28,))
-x = Dense(20, activation='sigmoid')(inputs)
+x = Dense(20, activation='sigmoid', use_bias=True)(inputs)
 #y = x
 y = Dropout(.3)(x)
 y = Dense(10, activation='sigmoid')(y)
-outputs = Dense(10, activation='softmax')(x)
+outputs = Dense(10, activation='softmax', use_bias=True)(x)
 
 model = Model(inputs=inputs, outputs=outputs)
 #K.set_learning_phase(1)
