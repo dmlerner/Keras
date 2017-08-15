@@ -23,10 +23,10 @@ _train_labels = array(mndata.train_labels).astype(numpy.float32)
 train_labels = keras.utils.to_categorical(_train_labels, 10)
 
 inputs = Input(shape=(1,28,28))
-convolution = Conv2D(10, (5,5), data_format='channels_first')(inputs)
+convolution = Conv2D(20, (7,7), data_format='channels_first')(inputs)
 maxpool = MaxPooling2D(2, data_format='channels_first')(convolution)
 flat = Flatten()(maxpool)
-x = Dense(50, activation='sigmoid', use_bias=True)(flat)
+x = Dense(100, activation='sigmoid', use_bias=True)(flat)
 outputs = Dense(10, activation='sigmoid', use_bias=True)(x)
 
 model = Model(inputs=inputs, outputs=outputs)
