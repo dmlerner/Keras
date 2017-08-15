@@ -23,7 +23,7 @@ _train_labels = array(mndata.train_labels).astype(numpy.float32)
 train_labels = keras.utils.to_categorical(_train_labels, 10)
 
 inputs = Input(shape=(1,28,28))
-convolution = Conv2D(10, (5,5), data_format='channels_first', input_shape=(28,28,1))(inputs)
+convolution = Conv2D(10, (5,5), data_format='channels_first')(inputs)
 maxpool = MaxPooling2D(2, data_format='channels_first')(convolution)
 flat = Flatten()(maxpool)
 x = Dense(50, activation='sigmoid', use_bias=True)(flat)
@@ -32,7 +32,7 @@ outputs = Dense(10, activation='sigmoid', use_bias=True)(x)
 model = Model(inputs=inputs, outputs=outputs)
 #K.set_learning_phase(1)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-model.fit(train_images, train_labels, epochs=100, batch_size=100)
+model.fit(train_images, train_labels, epochs=100, batch_size=300)
 
 function = K.function([model.input]+[K.learning_phase()], [model.layers[-1].output])
 train_predictions = function([train_images])[0]
