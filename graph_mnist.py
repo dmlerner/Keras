@@ -32,15 +32,16 @@ outputs = Dense(10, activation='sigmoid', use_bias=True)(x)
 model = Model(inputs=inputs, outputs=outputs)
 #K.set_learning_phase(1)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-model.fit(train_images, train_labels, epochs=100, batch_size=300)
-
 function = K.function([model.input]+[K.learning_phase()], [model.layers[-1].output])
-train_predictions = function([train_images])[0]
-test_predictions = function([test_images])[0]
+for i in range(10):
+    model.fit(train_images, train_labels, epochs=1, batch_size=300)
 
-predicted_labels_train = array(list(map(numpy.argmax, train_predictions))).astype(numpy.float32)
-predicted_labels_test = array(list(map(numpy.argmax, test_predictions))).astype(numpy.float32)
-percent_correct_train = (predicted_labels_train == _train_labels).sum() / _train_labels.size
-percent_correct_test = (predicted_labels_test == _test_labels).sum() / _test_labels.size
+    train_predictions = function([train_images])[0]
+    test_predictions = function([test_images])[0]
 
-print(percent_correct_train, percent_correct_test)
+    predicted_labels_train = array(list(map(numpy.argmax, train_predictions))).astype(numpy.float32)
+    predicted_labels_test = array(list(map(numpy.argmax, test_predictions))).astype(numpy.float32)
+    percent_correct_train = (predicted_labels_train == _train_labels).sum() / _train_labels.size
+    percent_correct_test = (predicted_labels_test == _test_labels).sum() / _test_labels.size
+
+    print(percent_correct_train, percent_correct_test)
