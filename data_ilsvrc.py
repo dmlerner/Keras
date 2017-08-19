@@ -42,7 +42,7 @@ sgd = optimizers.SGD(lr=.01, decay=1e-6, momentum=.9, nesterov=True)
 model.compile(optimizer=sgd, loss='categorical_crossentropy')
 function = K.function([model.input]+[K.learning_phase()], [model.layers[-1].output])
 
-def percent_correct(n):
+def percent_correct(flow, n):
     batch_size = 100
     samples = []
     for batch in range(n//batch_size):
@@ -59,4 +59,8 @@ def percent_correct(n):
         samples.append(percent_correct)
     return sum(samples) / len(samples)
 
-model.fit_generator(flow_train, validation_data=flow_test, steps_per_epoch=10, validation_steps=10, epochs=10)
+for epoch in range(100):
+    if epoch % 5 == 0:
+        print(epoch, percent_correct(flow_train, 1000), percent_correct(flow_test, 1000))
+
+    model.fit_generator(flow_train, validation_data=flow_test, steps_per_epoch=10, validation_steps=10)
