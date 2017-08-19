@@ -8,6 +8,7 @@ from keras.layers import *
 from keras.layers.pooling import *
 from keras.layers.convolutional import *
 from keras.layers.core import *
+from keras import *
 from keras import backend as K
 
 K.set_learning_phase(1)
@@ -36,7 +37,8 @@ d1 = Dense(500, activation='relu', use_bias=True)(flat)
 d2 = Dense(200, activation='sigmoid', use_bias=True)(d1)
 outputs = Dense(569, activation='sigmoid', use_bias=True)(d2)
 model = Model(inputs=inputs, outputs=outputs)
-model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+sgd = optimizers.SGD(lr=.01, decay=1e-6, momentum=.9, nesterov=True)
+model.compile(optimizer=sgd, loss='categorical_crossentropy')
 function = K.function([model.input]+[K.learning_phase()], [model.layers[-1].output])
 
 def percent_correct(n):
