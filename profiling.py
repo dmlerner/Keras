@@ -1,9 +1,9 @@
 from __future__ import division
 from cProfile import run
-from ilsvrc import main
+from data_ilsvrc import main
 import pstats
 
-filename = 'foo.stats'
+filename = 'profiling.stats'
 run('main()',filename)
 stats = pstats.Stats(filename)
 stats.sort_stats('time')

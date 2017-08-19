@@ -3,8 +3,11 @@ from glob import glob
 import os
 
 root = '/media/david/1600E62300E60997/ILSVRC'
-data = '/Data/DET/train/ILSVRC2013_train'
-annotations = '/Annotations/DET/train/ILSVRC2013_train'
+#data = '/Data/DET/test/ILSVRC2013_test'
+#annotations = '/Annotations/DET/test/ILSVRC2013_test'
+
+data = '/Data/DET/test/ILSVRC2013_test'
+annotations = '/Annotations/DET/test/ILSVRC2013_test'
 
 def extract_tag_value(annotation, tag):
     start_tag = '<'+tag+'>'
@@ -20,10 +23,12 @@ def parse_annotation(image_path):
     return [extract_tag_value(annotation, tag) for tag in ('xmin', 'xmax', 'ymin', 'ymax')]
 
 data_folders = glob(root+data+'/*')
+print(root+data)
+print(data_folders)
 for i, data_folder in enumerate(data_folders):
     print(i, len(data_folders))
     category = data_folder[data_folder.rfind('/'):]
-    subfolder = root+'/cropped'+category
+    subfolder = root+'/cropped/test'+category
     if not os.path.isdir(subfolder):
         os.mkdir(subfolder)
     annotation_folder = root + annotations + category

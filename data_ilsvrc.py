@@ -1,5 +1,5 @@
-from keras.preprocessing.image import ImageDataGenerator
 import keras
+from keras.preprocessing.image import ImageDataGenerator
 from numpy import array, argmax, apply_along_axis
 import keras.utils
 import numpy
@@ -19,11 +19,12 @@ generator = ImageDataGenerator(
 #    zca_whitening=True,
     horizontal_flip=True,
 )
-flow = generator.flow_from_directory(root, class_mode='categorical', batch_size=100)
+flow_train = generator.flow_from_directory(root+'train', class_mode='categorical', batch_size=100)
+flow_test = generator.flow_from_directory(root+'test', class_mode='categorical', batch_size=100)
 
 inputs = Input(shape=(256,256,3))
 
-conv1 = Conv2D(20, (7,7))(inputs)
+conv1 = Conv2D(40, (7,7))(inputs)
 mp1 = MaxPooling2D(2)(conv1)
 act1 = Activation('relu')(mp1)
 dropout = Dropout(.2)(act1)
@@ -58,7 +59,4 @@ def percent_correct(n):
         samples.append(percent_correct)
     return sum(samples) / len(samples)
 
-for epoch in range(10000):
-    if epoch % 5 == 0:
-        print('    ', epoch, percent_correct(500))
-    model.fit_generator(flow, steps_per_epoch=10)
+model.fit_generator(flow_train, validation_data=flow_test, steps_per_epoch=10, validation_steps=10, epochs=10)
