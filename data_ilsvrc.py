@@ -62,6 +62,7 @@ def percent_correct(flow, n):
 
 p_train = []
 p_test = []
+train_loss, test_loss = [], []
 skip = 1
 ion()
 for epoch in range(100):
@@ -71,11 +72,13 @@ for epoch in range(100):
         t = numpy.arange(epoch)
         subplot(121, axisbg='black')
         plot(t[::skip], p_train, 'r.')
-        plot(t, p_test, 'b.')
+        plot(t[::skip], p_test, 'b.')
         subplot(122, axisbg='black')
-        plot(t, history.history['loss'], 'r.')
-        plot(t,  history.history['val_loss'], 'b.')
+        plot(t, train_loss, 'r.')
+        plot(t, test_loss, 'b.')
         print(epoch, p_train[-1], p_test[-1])
         pause(.01)
 
     history = model.fit_generator(flow_train, validation_data=flow_test, steps_per_epoch=10, validation_steps=10)
+    train_loss.append(history.history['loss'])
+    test_loss.append(history.history['val_loss'])
