@@ -10,6 +10,7 @@ from keras.layers.convolutional import *
 from keras.layers.core import *
 from keras import *
 from keras import backend as K
+from pylab import plot, ion, draw, pause, subplot
 
 K.set_learning_phase(1)
 root = '/media/david/1600E62300E60997/ILSVRC/cropped/'
@@ -59,8 +60,22 @@ def percent_correct(flow, n):
         samples.append(percent_correct)
     return sum(samples) / len(samples)
 
+p_train = []
+p_test = []
+skip = 1
+ion()
 for epoch in range(100):
-    if epoch % 5 == 0:
-        print(epoch, percent_correct(flow_train, 1000), percent_correct(flow_test, 1000))
+    if epoch and epoch % skip == 0:
+        p_train.append(percent_correct(flow_train, 1000))
+        p_test.append(percent_correct(flow_test, 1000))
+        t = numpy.arange(epoch)
+        subplot(121, axisbg='black')
+        plot(t[::skip], p_train, 'r.')
+        plot(t, p_test, 'b.')
+        subplot(122, axisbg='black')
+        plot(t, history.history['loss'], 'r.')
+        plot(t,  history.history['val_loss'], 'b.')
+        print(epoch, p_train[-1], p_test[-1])
+        pause(.01)
 
-    model.fit_generator(flow_train, validation_data=flow_test, steps_per_epoch=10, validation_steps=10)
+    history = model.fit_generator(flow_train, validation_data=flow_test, steps_per_epoch=10, validation_steps=10)
