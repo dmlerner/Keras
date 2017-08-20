@@ -1,6 +1,7 @@
 import keras
 from keras.preprocessing.image import ImageDataGenerator
 from numpy import array, argmax, apply_along_axis
+from keras.regularizers import *
 import keras.utils
 import numpy
 from keras.models import Model
@@ -25,21 +26,21 @@ flow_test = generator.flow_from_directory(root+'test', class_mode='categorical',
 
 inputs = Input(shape=(256,256,3))
 
-conv1 = Conv2D(40, (7,7))(inputs)
+conv1 = Conv2D(40, (5,5), kernel_regularizer=l2(.001))(inputs)
 mp1 = MaxPooling2D(2)(conv1)
 act1 = Activation('relu')(mp1)
 dropout = Dropout(.2)(act1)
-conv2 = Conv2D(40, (5,5))(dropout)
+conv2 = Conv2D(60, (3,3), kernel_regularizer=l2(.001))(dropout)
 mp2 = MaxPooling2D(2)(conv2)
 act2 = Activation('relu')(mp2)
 
 flat = Flatten()(act2)
 
-d1 = Dense(500, activation='relu', use_bias=True)(flat)
-d2 = Dense(200, activation='sigmoid', use_bias=True)(d1)
-outputs = Dense(569, activation='sigmoid', use_bias=True)(d2)
+d1 = Dense(500, activation='relu', use_bias=True, kernel_regularizer=l2(.001))(flat)
+d2 = Dense(500, activation='sigmoid', use_bias=True, kernel_regularizer=l2(.001))(d1)
+outputs = Dense(569, activation='sigmoid', use_bias=True, kernel_regularizer=l2(.001))(d2)
 model = Model(inputs=inputs, outputs=outputs)
-sgd = optimizers.SGD(lr=.01, decay=1e-6, momentum=.9, nesterov=True)
+sgd = optimizers.SGD(lr=.1, decay=1e-6, momentum=.1, nesterov=True)
 model.compile(optimizer=sgd, loss='categorical_crossentropy')
 function = K.function([model.input]+[K.learning_phase()], [model.layers[-1].output])
 
@@ -63,16 +64,17 @@ def percent_correct(flow, n):
 p_train = []
 p_test = []
 train_loss, test_loss = [], []
-skip = 1
+skip = 5
 ion()
-for epoch in range(100):
+for epoch in range(10000):
+    t = numpy.arange(epoch)
     if epoch and epoch % skip == 0:
-        p_train.append(percent_correct(flow_train, 1000))
-        p_test.append(percent_correct(flow_test, 1000))
-        t = numpy.arange(epoch)
-        subplot(121, axisbg='black')
-        plot(t[::skip], p_train, 'r.')
-        plot(t[::skip], p_test, 'b.')
+        if True:
+            p_train.append(percent_correct(flow_train, 1000))
+            p_test.append(percent_correct(flow_test, 1000))
+            subplot(121, axisbg='black')
+            plot(t[::skip], p_train, 'r.')
+            plot(t[::skip], p_test, 'b.')
         subplot(122, axisbg='black')
         plot(t, train_loss, 'r.')
         plot(t, test_loss, 'b.')
