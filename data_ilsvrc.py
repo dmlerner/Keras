@@ -12,6 +12,7 @@ from keras.layers.core import *
 from keras import *
 from keras import backend as K
 from pylab import plot, ion, draw, pause, subplot
+from keras.layers.normalization import BatchNormalization
 
 K.set_learning_phase(1)
 root = '/media/david/1600E62300E60997/ILSVRC/cropped/'
@@ -20,27 +21,33 @@ generator = ImageDataGenerator(
     samplewise_std_normalization=True,
 #    zca_whitening=True,
     horizontal_flip=True,
+    rotation_range=10,
+    shear_range=3.14*.05,
+    vertical_flip=True,
 )
 flow_train = generator.flow_from_directory(root+'train', class_mode='categorical', batch_size=100)
 flow_test = generator.flow_from_directory(root+'test', class_mode='categorical', batch_size=100)
 
 inputs = Input(shape=(256,256,3))
 
-conv1 = Conv2D(40, (5,5), kernel_regularizer=l2(.001))(inputs)
-mp1 = MaxPooling2D(2)(conv1)
+conv1 = Conv2D(40, (5,5), kernel_regularizer=l2(0))(inputs)
+batch1 = BatchNormalization(axis=1)(conv1)
+mp1 = MaxPooling2D(2)(batch1)
 act1 = Activation('relu')(mp1)
 dropout = Dropout(.2)(act1)
-conv2 = Conv2D(60, (3,3), kernel_regularizer=l2(.001))(dropout)
-mp2 = MaxPooling2D(2)(conv2)
+conv2 = Conv2D(60, (3,3), kernel_regularizer=l2(0))(dropout)
+batch2 = BatchNormalization(axis=1)(conv2)
+mp2 = MaxPooling2D(2)(batch2)
 act2 = Activation('relu')(mp2)
 
 flat = Flatten()(act2)
 
-d1 = Dense(500, activation='relu', use_bias=True, kernel_regularizer=l2(.001))(flat)
-d2 = Dense(500, activation='sigmoid', use_bias=True, kernel_regularizer=l2(.001))(d1)
-outputs = Dense(569, activation='sigmoid', use_bias=True, kernel_regularizer=l2(.001))(d2)
+d1 = Dense(500, activation='relu', use_bias=True, kernel_regularizer=l2(0))(flat)
+batch2 = BatchNormalization()(d1)
+d2 = Dense(500, activation='sigmoid', use_bias=True, kernel_regularizer=l2(0))(batch2)
+outputs = Dense(569, activation='sigmoid', use_bias=True, kernel_regularizer=l2(0))(d2)
 model = Model(inputs=inputs, outputs=outputs)
-sgd = optimizers.SGD(lr=.1, decay=1e-6, momentum=.1, nesterov=True)
+sgd = optimizers.adagrad()
 model.compile(optimizer=sgd, loss='categorical_crossentropy')
 function = K.function([model.input]+[K.learning_phase()], [model.layers[-1].output])
 
