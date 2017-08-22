@@ -49,23 +49,30 @@ fit_images = sample(flow_train, 1000)[0]
 generator.fit(fit_images)
 generator.zca_whitening = True
 
-inputs = Input(shape=(256,256,3))
-conv1 = Conv2D(40, (5,5))(inputs)
-batch1 = BatchNormalization(axis=1)(conv1)
-mp1 = MaxPooling2D(2)(batch1)
-act1 = Activation('relu')(mp1)
-dropout = Dropout(.2)(act1)
-conv2 = Conv2D(60, (3,3))(dropout)
-batch2 = BatchNormalization(axis=1)(conv2)
-mp2 = MaxPooling2D(2)(batch2)
-act2 = Activation('relu')(mp2)
+def conv_suite(inputs, n, size):
+	conv = Conv2D(n, (size,)*2)(inputs)
+	batch = BatchNormalization(axis=1)(conv)
+	pool = MaxPooling2D(2)(batch)
+	activation = Activation('relu')(pool)
+i	return activation
+	
+def dense_suite(inputs, n, activation='relu'):
+	dense = Dense(n, activation, use_bias=True)(inputs)
+	return BatchNormalization()(dense)
 
+inputs = Input(shape=(256,256,3))
+
+conv1 = conv_suite(inputs, 20, 5)
+conv2 = conv_suite(conv1, 40, 4)
+conv3 = conv_suite(conv2, 60, 3)
+
+dropout = Dropout(.2)(conv3)
 flat = Flatten()(act2)
 
-d1 = Dense(500, activation='relu', use_bias=True)(flat)
-batch2 = BatchNormalization()(d1)
-d2 = Dense(500, activation='sigmoid', use_bias=True)(batch2)
-outputs = Dense(569, activation='sigmoid', use_bias=True)(d2)
+dense1 = dense_suite(flat, 500)
+dense2 = dense_suite(dense1, 500)
+dense3 = dense_suite(dense2, 569)
+
 model = Model(inputs=inputs, outputs=outputs)
 sgd = optimizers.adagrad()
 model.compile(optimizer=sgd, loss='categorical_crossentropy')
@@ -85,7 +92,7 @@ def percent_correct(flow, n):
 p_train = []
 p_test = []
 train_loss, test_loss = [], []
-skip = 5
+skip = 1
 ion()
 for epoch in range(10000):
     t = numpy.arange(epoch)
@@ -102,7 +109,7 @@ for epoch in range(10000):
         print(epoch, p_train[-1], p_test[-1])
         pause(.01)
 
-    history = model.fit_generator(flow_train, validation_data=flow_test, steps_per_epoch=10, validation_steps=1)
+    history = model.fit_generator(flow_train, validation_data=flow_test, steps_per_epoch=50, validation_steps=1)
     train_loss.append(history.history['loss'])
     test_loss.append(history.history['val_loss'])
 
