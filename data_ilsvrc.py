@@ -45,35 +45,28 @@ def sample(flow, n):
 flow_train = generator.flow_from_directory(root+'train', class_mode='categorical', batch_size=100)
 flow_test = generator.flow_from_directory(root+'test', class_mode='categorical', batch_size=100)
 
-fit_images = sample(flow_train, 1000)[0]
-generator.fit(fit_images)
-generator.zca_whitening = True
+#fit_images = sample(flow_train, 1000)[0]
+#generator.fit(fit_images)
+#generator.zca_whitening = True
 
 def conv_suite(inputs, n, size):
 	conv = Conv2D(n, (size,)*2)(inputs)
 	batch = BatchNormalization(axis=1)(conv)
 	pool = MaxPooling2D(2)(batch)
 	activation = Activation('relu')(pool)
-i	return activation
+	return activation
 	
 def dense_suite(inputs, n, activation='relu'):
-	dense = Dense(n, activation, use_bias=True)(inputs)
+	dense = Dense(n, activation=activation, use_bias=True)(inputs)
 	return BatchNormalization()(dense)
 
 inputs = Input(shape=(256,256,3))
-
-conv1 = conv_suite(inputs, 20, 5)
-conv2 = conv_suite(conv1, 40, 4)
-conv3 = conv_suite(conv2, 60, 3)
-
-dropout = Dropout(.2)(conv3)
-flat = Flatten()(act2)
-
-dense1 = dense_suite(flat, 500)
-dense2 = dense_suite(dense1, 500)
-dense3 = dense_suite(dense2, 569)
-
+flat = Flatten()(inputs)
+dense = dense_suite(flat, 569)
+#dense = Dense(569)(flat)
+outputs = Activation('sigmoid')(dense)
 model = Model(inputs=inputs, outputs=outputs)
+
 sgd = optimizers.adagrad()
 model.compile(optimizer=sgd, loss='categorical_crossentropy')
 function = K.function([model.input]+[K.learning_phase()], [model.layers[-1].output])
@@ -89,27 +82,26 @@ def percent_correct(flow, n):
         samples.append(percent_correct)
     return sum(samples) / len(samples)
 
-p_train = []
-p_test = []
+p_train = [0]
+p_test = [0]
 train_loss, test_loss = [], []
-skip = 1
+skip = 5
 ion()
 for epoch in range(10000):
-    t = numpy.arange(epoch)
-    if epoch and epoch % skip == 0:
-        if True:
-            p_train.append(percent_correct(flow_train, 1000))
-            p_test.append(percent_correct(flow_test, 1000))
-            subplot(121, axisbg='black')
-            plot(t[::skip], p_train, 'r.')
-            plot(t[::skip], p_test, 'b.')
-        subplot(122, axisbg='black')
-        plot(t, train_loss, 'r.')
-        plot(t, test_loss, 'b.')
-        print(epoch, p_train[-1], p_test[-1])
-        pause(.01)
-
-    history = model.fit_generator(flow_train, validation_data=flow_test, steps_per_epoch=50, validation_steps=1)
-    train_loss.append(history.history['loss'])
-    test_loss.append(history.history['val_loss'])
+	t = numpy.arange(epoch)
+	if epoch and epoch % skip == 0:
+		p_train.append(percent_correct(flow_train, 1000))
+		p_test.append(percent_correct(flow_test, 1000))
+		subplot(121, axisbg='black')
+		plot(t[::skip], p_train, 'r.')
+		plot(t[::skip], p_test, 'b.')
+		subplot(122, axisbg='black')
+		plot(t, train_loss, 'r.')
+		plot(t, test_loss, 'b.')
+		print('.'*15, epoch, p_train[-1], p_test[-1])
+		pause(.01)
+		model.save('keras.sav')
+	history = model.fit_generator(flow_train, validation_data=flow_test, steps_per_epoch=10, validation_steps=1)
+	train_loss.append(history.history['loss'])
+	test_loss.append(history.history['val_loss'])
 
