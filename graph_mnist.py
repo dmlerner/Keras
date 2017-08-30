@@ -9,6 +9,7 @@ from mnist import MNIST
 import numpy
 from numpy import array
 import tensorflow
+from make_parallel import *
 
 mndata = MNIST('python-mnist/data/')
 mndata.load_training()
@@ -23,18 +24,25 @@ _train_labels = array(mndata.train_labels).astype(numpy.float32)
 train_labels = keras.utils.to_categorical(_train_labels, 10)
 
 inputs = Input(shape=(1,28,28))
-convolution = Conv2D(20, (7,7), data_format='channels_first')(inputs)
+convolution = Conv2D(100, (7,7), data_format='channels_first')(inputs)
 maxpool = MaxPooling2D(2, data_format='channels_first')(convolution)
 flat = Flatten()(maxpool)
-x = Dense(100, activation='sigmoid', use_bias=True)(flat)
+x = Dense(5000, activation='relu', use_bias=True)(flat)
+x = Dense(2000, activation='relu', use_bias=True)(x)
+x = Dense(1000, activation='relu', use_bias=True)(x)
+x = Dense(500, activation='relu', use_bias=True)(x)
+x = Dense(100, activation='relu', use_bias=True)(x)
 outputs = Dense(10, activation='sigmoid', use_bias=True)(x)
 
 model = Model(inputs=inputs, outputs=outputs)
+print(model.summary())
+model = make_parallel(model, 2)
 #K.set_learning_phase(1)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
 function = K.function([model.input]+[K.learning_phase()], [model.layers[-1].output])
 for i in range(10):
-    model.fit(train_images, train_labels, epochs=1, batch_size=300)
+    model.fit(train_images, train_labels, epochs=1, batch_size=1000)
+    continue
 
     train_predictions = function([train_images])[0]
     test_predictions = function([test_images])[0]
